@@ -11,26 +11,57 @@ import (
 	"github.com/go-ole/go-ole/oleutil"
 )
 
-// CreateShortcut create a shortcut with name and icon
-// target to src file or website in the dir directory
-func CreateShortcut(name, src, icon, dir string) error {
-	dst := filepath.Join(dir, name+".lnk")
-	return createShortcut(src, dst, icon)
+// Shortcut the shortcut (.lnk file) property struct
+type Shortcut struct {
+	// Shortcut (.lnk file) path
+	ShortcutPath string
+	// Shortcut target: a file path or a website
+	Target string
+	// Shortcut icon path, default: "%SystemRoot%\\System32\\SHELL32.dll,0"
+	IconLocation string
+	// Arguments of shortcut
+	Arguments string
+	// Description of shortcut
+	Description string
+	// Hotkey of shortcut
+	Hotkey string
+	// WindowStyle, "1"(default) for default size and location; "3" for maximized window; "7" for minimized window
+	WindowStyle string
+	// Working directory of shortcut
+	WorkingDirectory string
 }
 
-// CreateShortcut create a desktop shortcut with name and icon
-// target to src file or website
-func CreateDesktopShortcut(name, src, icon string) error {
+// CreateShortcut create a desktop shortcut with name, target and iconPath
+// target is a file or website
+// if iconPath is empty string, icon would be "%SystemRoot%\\System32\\SHELL32.dll,0"
+func CreateDesktopShortcut(name, target, iconPath string) error {
 
 	u, err := user.Current()
 	if err != nil {
 		return err
 	}
-	dst := filepath.Join(u.HomeDir, "Desktop", name+".lnk")
-	return createShortcut(src, dst, icon)
+	shortcutPath := filepath.Join(u.HomeDir, "Desktop", name+".lnk")
+	shortcut := Shortcut{
+		ShortcutPath:     shortcutPath,
+		Target:           target,
+		IconLocation:     iconPath,
+		Arguments:        "",
+		Description:      "",
+		Hotkey:           "",
+		WindowStyle:      "1",
+		WorkingDirectory: "",
+	}
+	return Create(shortcut)
 }
 
-func createShortcut(src, dst, icon string) error {
+// CreateShortcut create with a shortcut object
+func Create(shortcut Shortcut) error {
+	if shortcut.IconLocation == "" {
+		shortcut.IconLocation = "%SystemRoot%\\System32\\SHELL32.dll,0"
+	}
+	if shortcut.WindowStyle == "" {
+		shortcut.WindowStyle = "1"
+	}
 	ole.CoInitializeEx(0, ole.COINIT_APARTMENTTHREADED|ole.COINIT_SPEED_OVER_MEMORY)
 	oleShellObject, err := oleutil.CreateObject("WScript.Shell")
 	if err != nil {
@@ -42,20 +73,39 @@ func createShortcut(src, dst, icon string) error {
 		return err
 	}
 	defer wshell.Release()
-	cs, err := oleutil.CallMethod(wshell, "CreateShortcut", dst)
+	cs, err := oleutil.CallMethod(wshell, "CreateShortcut", shortcut.ShortcutPath)
 	if err != nil {
 		return err
 	}
+
 	idispatch := cs.ToIDispatch()
-	_, err = oleutil.PutProperty(idispatch, "TargetPath", src)
+	_, err = oleutil.PutProperty(idispatch, "IconLocation", shortcut.IconLocation)
 	if err != nil {
 		return err
 	}
-	if icon != "" {
-		_, err = oleutil.PutProperty(idispatch, "IconLocation", icon)
-		if err != nil {
-			return err
-		}
+	_, err = oleutil.PutProperty(idispatch, "TargetPath", shortcut.Target)
+	if err != nil {
+		return err
+	}
+	_, err = oleutil.PutProperty(idispatch, "Arguments", shortcut.Arguments)
+	if err != nil {
+		return err
+	}
+	_, err = oleutil.PutProperty(idispatch, "Description", shortcut.Description)
+	if err != nil {
+		return err
+	}
+	_, err = oleutil.PutProperty(idispatch, "Hotkey", shortcut.Hotkey)
+	if err != nil {
+		return err
+	}
+	_, err = oleutil.PutProperty(idispatch, "WindowStyle", shortcut.WindowStyle)
+	if err != nil {
+		return err
+	}
+	_, err = oleutil.PutProperty(idispatch, "WorkingDirectory", shortcut.WorkingDirectory)
+	if err != nil {
+		return err
 	}
 	_, err = oleutil.CallMethod(idispatch, "Save")
 	if err != nil {

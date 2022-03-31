@@ -12,11 +12,20 @@ import (
 
 func TestCreateShortcut(t *testing.T) {
 	var err error
-	err = CreateShortcut("google", "https://google.com", "", ".")
+	sc := Shortcut{
+		ShortcutPath:     "./google.lnk",
+		Target:           "https://google.com",
+		IconLocation:     "%SystemRoot%\\System32\\SHELL32.dll,0",
+		Arguments:        "",
+		Description:      "",
+		Hotkey:           "",
+		WindowStyle:      "1",
+		WorkingDirectory: "",
+	}
+	err = Create(sc)
 	if err == nil {
 		_, err = os.Stat("./google.lnk")
 		if err == nil {
-			t.Log("CreateShortcut pass.")
 			return
 		}
 	}
@@ -31,7 +40,6 @@ func TestCreateDesktopShortcut(t *testing.T) {
 		dst := filepath.Join(u.HomeDir, "Desktop", "google.lnk")
 		_, err = os.Stat(dst)
 		if err == nil {
-			t.Log("CreateDesktopShortcut pass.")
 			return
 		}
 	}
