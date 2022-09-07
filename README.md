@@ -12,19 +12,21 @@ go get github.com/jxeng/shortcut
 Usage
 
 ```golang
-  // Common useage
-	sc := Shortcut{
-		ShortcutPath:     "./google.lnk",
-		Target:           "https://google.com",
-		IconLocation:     "%SystemRoot%\\System32\\SHELL32.dll,0",
-		Arguments:        "",
-		Description:      "",
-		Hotkey:           "",
-		WindowStyle:      "1",
-		WorkingDirectory: "",
-	}
-	err := Create(sc)
 
-  // Create a shortcut on desktop
-  shortcut.CreateDesktopShortcut("google", "https://google.com", "/path/to/logo.ico", ".")
+// Create a shortcut on desktop
+shortcut.CreateDesktopShortcut("google", "https://google.com", "/path/to/logo.ico", ".")
+
+// Advanced useage
+sc := Shortcut{
+	ShortcutPath:     "./google.lnk",
+	Target:           "https://google.com",
+	IconLocation:     "%SystemRoot%\\System32\\SHELL32.dll,0",
+	Arguments:        "",
+	Description:      "",
+	Hotkey:           "",
+	WindowStyle:      "1",
+	WorkingDirectory: "",
+}
+err := Create(sc)
+
 ```
