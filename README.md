@@ -27,6 +27,6 @@ sc := Shortcut{
 	WindowStyle:      "1",
 	WorkingDirectory: "",
 }
-err := Create(sc)
+err := shortcut.Create(sc)
 
 ```
